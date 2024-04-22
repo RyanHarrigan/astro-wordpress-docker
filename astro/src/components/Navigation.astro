@@ -1,0 +1,15 @@
+---
+import { getPrimaryMenu } from '../../lib/api';
+const menuitems = getPrimaryMenu() ?? [];
+---
+<nav>
+  <ul>
+    {menuitems.map(({label, pageId, path}) => {
+      <li key={path}>
+        <a href={pageId} class={`cursor-pointer p-4 ml-2`}>
+          {label}
+        </a>
+      </li>
+    })}
+  </ul>
+</nav>

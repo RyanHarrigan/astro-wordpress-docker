@@ -1,0 +1,89 @@
+version: '3'
+services:
+  astro:
+    build:
+      context: astro
+      dockerfile: ../Dockerfile.astro
+    develop: # this watch block helps when developing
+      watch:
+        - action: sync+restart
+          path: .
+          target: /app
+          ignore:
+            - node_modules/
+    command:
+#      - node ./dist/server/entry.mjs
+      - node run dev # run this command when developing
+    environment: # see astro/src/env.d.ts
+      SITE: http://wordpress
+      GRAPHQL_URL: http://wordpress/graphql
+      PUBLIC_FACEBOOK_URL: ${PUBLIC_FACEBOOK_URL}
+      PUBLIC_GOOGLE_ANALYTICS_ID: ${PUBLIC_GOOGLE_ANALYTICS_ID}
+    restart: always
+    ports:
+      - "3000:4321"
+    depends_on:
+      - wordpress
+    networks:
+      astro_net_1:
+        ipv4_address: 192.168.56.21
+
+  wordpress:
+    build:
+      context: .
+      dockerfile: Dockerfile.wordpress
+    restart: always
+    ports:
+      - "8080:80" # disable after initial startup
+    depends_on:
+      - db
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DATABASE}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_PASSWORD}
+      WORDPRESS_INTERNAL_URL: http://wordpress
+      WORDPRESS_AUTH_KEY: ${WORDPRESS_AUTH_KEY}
+      WORDPRESS_SECURE_AUTH_KEY: ${WORDPRESS_SECURE_AUTH_KEY}
+      WORDPRESS_LOGGED_IN_KEY: ${WORDPRESS_LOGGED_IN_KEY}
+      WORDPRESS_NONCE_KEY: ${WORDPRESS_NONCE_KEY}
+      WORDPRESS_AUTH_SALT: ${WORDPRESS_AUTH_SALT}
+      WORDPRESS_SECURE_AUTH_SALT: ${WORDPRESS_SECURE_AUTH_SALT}
+      WORDPRESS_LOGGED_IN_SALT: ${WORDPRESS_LOGGED_IN_SALT}
+      WORDPRESS_NONCE_SALT: ${WORDPRESS_NONCE_SALT}
+    volumes:
+      - wordpress/engine:/var/www/html
+      - wordpress/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+    networks:
+      astro_net_1:
+        ipv4_address: 192.168.56.22
+
+  db:
+    image: mysql:8.3.0
+    restart: always
+    volumes:
+      - ./db:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${WORDPRESS_DATABASE}
+      MYSQL_USER: ${WORDPRESS_DB_USER}
+      MYSQL_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+
+    networks:
+      astro_net_1:
+        ipv4_address: 192.168.56.23
+
+networks:
+  astro_net_1:
+    ipam:
+      driver: default
+      config:
+        - subnet: "192.168.56.0/24"
+
+volumes:
+  db:
+    external: true # protecting this dir from being deleted
+    name: astro-wp-db
+  wordpress: # note subpath mounts https://github.com/moby/moby/pull/45687
+    external: true
+    name: astro-wp-wordpress

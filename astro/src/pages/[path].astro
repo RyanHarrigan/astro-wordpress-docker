@@ -1,0 +1,29 @@
+---
+import { PAGE_SERVICES, PAGE_CONTACT } from '../../lib/constants';
+import HtmlWrapper from '../layouts/HtmlWrapper.astro';
+import Navigation from '../components/Navigation.astro';
+
+export function getStaticPaths() {
+  return [
+    {
+      params: { path: PAGE_SERVICES },
+      props: { pageId: PAGE_SERVICES }
+    },
+    {
+      params: { path: PAGE_CONTACT },
+      props: { pageId: PAGE_CONTACT }
+    },
+    // { params: {path: undefined} }, // index.astro may pick this up
+  ];
+}
+
+const { pageId } = Astro.props;
+
+---
+<HtmlWrapper>
+  <Navigation />
+  <main class="flex justify-center align-middle">
+    <h1 class="text-4xl">Welcome to /{pageId}!</h1>
+    <h4 class="text-xl">Soon to have it's own layout</h4>
+  </main>
+</HtmlWrapper>
