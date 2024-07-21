@@ -1,4 +1,4 @@
-FROM wordpress:php8.1-fpm
+FROM wordpress:php8.1
 
 EXPOSE 80
 
@@ -6,7 +6,7 @@ EXPOSE 80
 WORKDIR /var/www/html
 
 # Copy php uploads config file, added to /var/www/html on container startup
-COPY ./wordpress/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
+COPY ./uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 
 # Copy wordpress content, added to /var/www/html on container startup
-COPY ./wordpress/default-wp-content/* /usr/src/wordpress/wp-content/
+COPY ./default-wp-content/plugins/wp-graphql /usr/src/wordpress/wp-content/plugins/wp-graphql

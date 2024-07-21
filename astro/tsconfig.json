@@ -1,3 +1,14 @@
 {
-  "extends": "astro/tsconfigs/strict"
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "lib": ["es2022"],
+    "plugins": [
+      {
+        "name": "@astrojs/ts-plugin"
+      },
+    ],
+//    "target": "es2022", // defaults to ESNext
+//    "moduleResolution": "Node", // Vite build only pulls in certain properties
+    "verbatimModuleSyntax": true, // https://docs.astro.build/en/guides/typescript/#type-imports
+  }
 }

@@ -1,0 +1,76 @@
+---
+// base css
+import '../styles/tailwindBase.css';
+// import { ViewTransitions } from 'astro:transitions'; // @TODO SPA-like navigations
+import { getSettings } from '../graphql';
+import Body from './Body.astro';
+
+interface Props {
+	title?: string;
+	siteDescription?: string;
+}
+
+let title = 'Hello World';
+let description = 'This is a site';
+
+try {
+	const settings = await getSettings();
+	title = settings?.title ?? title;
+	description = settings?.description ?? description;
+	console.debug(title, description)
+	} catch (e: any) {
+	console.debug(e?.message);
+	}
+
+const { title: providedTitle, siteDescription: providedSiteDescription } = Astro.props;
+
+if (providedTitle) {
+	title = providedTitle;
+}
+if (providedSiteDescription) {
+	description = providedSiteDescription;
+}
+
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content={description} />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+		<!--<ViewTransitions />-->
+	</head>
+	<Body>
+		<slot />
+	</Body>
+</html>
+<script>
+	function decodeHTMLEntities(text: string = '') {
+		const textArea = document.createElement('textarea') as HTMLTextAreaElement;
+
+		// something could be wrong when creating dynamic elements
+		if (!document.contains(textArea)) {
+			return text;
+		}
+
+		textArea.innerHTML = text;
+		const value = textArea.value;
+		textArea.remove();
+
+		return value;
+	}
+
+	document.title = decodeHTMLEntities(document.title ?? '');
+
+	const descriptionMetaEl = document.querySelector('meta[name="description"]');
+	if (descriptionMetaEl) {
+		descriptionMetaEl.setAttribute(
+			"content",
+			decodeHTMLEntities(descriptionMetaEl.getAttribute('content') ?? ''),
+		);
+	}
+</script>

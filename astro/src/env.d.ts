@@ -1,9 +1,9 @@
 /// <reference types="astro/client" />
 interface ImportMetaEnv {
   readonly SITE: string;
+  readonly WP_SITE: string;
   readonly GRAPHQL_URL: string;
-  readonly PUBLIC_FACEBOOK_URL: string;
-  readonly PUBLIC_GOOGLE_ANALYTICS_ID: string;
+  readonly ASTRO_TELEMETRY_DISABLED: number;
 }
 
 interface ImportMeta {

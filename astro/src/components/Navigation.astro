@@ -1,15 +1,26 @@
 ---
-import { getPrimaryMenu } from '../../lib/api';
-const menuitems = getPrimaryMenu() ?? [];
+import { getCategories } from '../graphql';
+import type { Category } from '../graphql/categories/types';
+
+let fetchedCategories: Category[] = [];
+
+try {
+  fetchedCategories = await getCategories();
+} catch (e: any) {
+  console.debug(e?.message);
+}
+
+const categories: Category[] = [{
+  id: '/',
+  name: 'Home',
+}].concat(fetchedCategories);
 ---
-<nav>
-  <ul>
-    {menuitems.map(({label, pageId, path}) => {
-      <li key={path}>
-        <a href={pageId} class={`cursor-pointer p-4 ml-2`}>
-          {label}
-        </a>
-      </li>
-    })}
+<nav class="text-slate-500 dark:text-slate-200">
+  <ul class="flex main-navigation">
+    {categories.map(({name, id}) => <li class="p-4 ml-2 block">
+      <a href={id} class={`cursor-pointer`}>
+        {name}
+      </a>
+    </li>)}
   </ul>
 </nav>

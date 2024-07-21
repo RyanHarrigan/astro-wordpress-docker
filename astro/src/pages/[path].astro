@@ -1,29 +1,31 @@
 ---
-import { PAGE_SERVICES, PAGE_CONTACT } from '../../lib/constants';
+import _ from 'lodash';
+const { map } = _;
+import { getCategory } from '../graphql';
+import type { CategoryAndPosts } from '../graphql/categories/types';
 import HtmlWrapper from '../layouts/HtmlWrapper.astro';
+import Section from '../layouts/Section.astro';
 import Navigation from '../components/Navigation.astro';
 
-export function getStaticPaths() {
-  return [
-    {
-      params: { path: PAGE_SERVICES },
-      props: { pageId: PAGE_SERVICES }
-    },
-    {
-      params: { path: PAGE_CONTACT },
-      props: { pageId: PAGE_CONTACT }
-    },
-    // { params: {path: undefined} }, // index.astro may pick this up
-  ];
+const categorySlug = Astro.url.pathname.replace(/^\/|\/$/g, '');
+
+let category: CategoryAndPosts = {} as CategoryAndPosts;
+
+try {
+  category = await getCategory(categorySlug);
+} catch (e: any) {
+  console.debug(e?.message);
 }
 
-const { pageId } = Astro.props;
+const {
+  name = '',
+  posts = []
+} = category;
 
 ---
 <HtmlWrapper>
   <Navigation />
-  <main class="flex justify-center align-middle">
-    <h1 class="text-4xl">Welcome to /{pageId}!</h1>
-    <h4 class="text-xl">Soon to have it's own layout</h4>
+  <main class="flex flex-col justify-center align-middle mx-8">
+    {map(posts, ({title, content, excerpt}) => <Section title={title} content={content} excerpt={excerpt} />)}
   </main>
 </HtmlWrapper>

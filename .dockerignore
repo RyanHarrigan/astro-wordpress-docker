@@ -11,8 +11,5 @@ VERSION
 README.md
 Changelog.md
 docker-compose.*.yml
+docker-compose.*.yaml
 **/node_modules
-astro/dist
-astro/.vscode
-astro/README.md
-astro/yarn.lock

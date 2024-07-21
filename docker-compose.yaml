@@ -1,4 +1,3 @@
-version: '3'
 services:
   astro:
     build:
@@ -6,19 +5,21 @@ services:
       dockerfile: ../Dockerfile.astro
     develop: # this watch block helps when developing
       watch:
-        - action: sync+restart
-          path: .
-          target: /app
+        - action: sync
+          path: ./astro/src
+          target: /app/src
           ignore:
-            - node_modules/
-    command:
-#      - node ./dist/server/entry.mjs
-      - node run dev # run this command when developing
+            - ./node_modules/
+        - action: rebuild
+          path: ./astro/package.json
+        - action: rebuild
+          path: ./astro/astro.config.json
+    entrypoint: npm run dev # run this command when developing
     environment: # see astro/src/env.d.ts
-      SITE: http://wordpress
+      SITE: http://localhost
+      WP_SITE: http://wordpress
       GRAPHQL_URL: http://wordpress/graphql
-      PUBLIC_FACEBOOK_URL: ${PUBLIC_FACEBOOK_URL}
-      PUBLIC_GOOGLE_ANALYTICS_ID: ${PUBLIC_GOOGLE_ANALYTICS_ID}
+      ASTRO_TELEMETRY_DISABLED: 1 # https://astro.build/telemetry/
     restart: always
     ports:
       - "3000:4321"
@@ -26,12 +27,12 @@ services:
       - wordpress
     networks:
       astro_net_1:
-        ipv4_address: 192.168.56.21
+        ipv4_address: 172.16.56.21
 
   wordpress:
     build:
-      context: .
-      dockerfile: Dockerfile.wordpress
+      context: wordpress
+      dockerfile: ../Dockerfile.wordpress
     restart: always
     ports:
       - "8080:80" # disable after initial startup
@@ -40,8 +41,8 @@ services:
     environment:
       WORDPRESS_DB_HOST: db:3306
       WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
-      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DATABASE}
-      WORDPRESS_DB_NAME: ${WORDPRESS_DB_PASSWORD}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DATABASE}
       WORDPRESS_INTERNAL_URL: http://wordpress
       WORDPRESS_AUTH_KEY: ${WORDPRESS_AUTH_KEY}
       WORDPRESS_SECURE_AUTH_KEY: ${WORDPRESS_SECURE_AUTH_KEY}
@@ -51,18 +52,26 @@ services:
       WORDPRESS_SECURE_AUTH_SALT: ${WORDPRESS_SECURE_AUTH_SALT}
       WORDPRESS_LOGGED_IN_SALT: ${WORDPRESS_LOGGED_IN_SALT}
       WORDPRESS_NONCE_SALT: ${WORDPRESS_NONCE_SALT}
+      WORDPRESS_DEBUG: true
+      WORDPRESS_CONFIG_EXTRA: "define( 'WP_DEBUG_LOG', true ); define( 'WP_DEBUG_DISPLAY', true );"
     volumes:
-      - wordpress/engine:/var/www/html
-      - wordpress/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+      - ./wordpress/wp-content:/var/www/html/wp-content
     networks:
       astro_net_1:
-        ipv4_address: 192.168.56.22
+        ipv4_address: 172.16.56.22
 
   db:
-    image: mysql:8.3.0
+    build:
+      context: .
+      dockerfile: Dockerfile.mysql
     restart: always
     volumes:
-      - ./db:/var/lib/mysql
+      - type: volume
+        source: db
+        target: /var/lib/mysql
+        volume:
+          nocopy: false
+
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${WORDPRESS_DATABASE}
@@ -71,19 +80,16 @@ services:
 
     networks:
       astro_net_1:
-        ipv4_address: 192.168.56.23
+        ipv4_address: 172.16.56.23
 
 networks:
   astro_net_1:
     ipam:
       driver: default
       config:
-        - subnet: "192.168.56.0/24"
+        - subnet: "172.16.56.0/24"
 
 volumes:
   db:
-    external: true # protecting this dir from being deleted
     name: astro-wp-db
-  wordpress: # note subpath mounts https://github.com/moby/moby/pull/45687
-    external: true
-    name: astro-wp-wordpress
+

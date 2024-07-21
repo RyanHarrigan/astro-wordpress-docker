@@ -1,39 +1,23 @@
 ---
 import HtmlWrapper from '../layouts/HtmlWrapper.astro';
+import Readme from '../layouts/Readme.astro';
 import Navigation from '../components/Navigation.astro';
+
+const readmeGlob = await Astro.glob("/README.md");
+const { Content: ReadmeContent } = (Array.isArray(readmeGlob) ? readmeGlob[0] : readmeGlob);
+
+export function getStaticPaths() {
+	return [
+		{params: { path: undefined } }, // undefined matches root https://docs.astro.build/en/guides/routing/#rest-parameters
+  ];
+}
+
 ---
 <HtmlWrapper>
 	<Navigation />
 	<main>
-		<h1>Welcome to <span class="text-gradient">Hello World</span></h1>
+		<Readme>
+			<ReadmeContent />
+		</Readme>
 	</main>
 </HtmlWrapper>
-
-<style>
-	main {
-		margin: auto;
-		padding: 1rem;
-		width: 800px;
-		max-width: calc(100% - 2rem);
-		color: white;
-		font-size: 20px;
-		line-height: 1.6;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	}
-	h1 {
-		font-size: 4rem;
-		font-weight: 700;
-		line-height: 1;
-		text-align: center;
-		margin-bottom: 1em;
-	}
-	.text-gradient {
-		background-image: var(--accent-gradient);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-size: 400%;
-		background-position: 0%;
-	}
-</style>

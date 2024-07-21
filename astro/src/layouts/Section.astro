@@ -1,0 +1,9 @@
+---
+import Readme from './Readme.astro';
+const { title = 'No Title', excerpt = 'Nothing here...'} = Astro.props;
+
+---
+<Readme>
+  <h1 set:html={title} />
+  <div set:html={excerpt} />
+</Readme>
